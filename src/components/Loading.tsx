@@ -20,10 +20,10 @@ const Loading = ({ percent }: { percent: number }) => {
   }
 
   useEffect(() => {
-    // Fallback: hide loading after 10 seconds if not already hidden
+    // Fallback: hide loading after 5 seconds if not already hidden
     const fallbackTimeout = setTimeout(() => {
       setIsLoading(false);
-    }, 10000);
+    }, 5000);
 
     return () => clearTimeout(fallbackTimeout);
   }, [setIsLoading]);
