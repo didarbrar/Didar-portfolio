@@ -6,11 +6,12 @@ const About = () => {
       <div className="about-me">
         <h3 className="title">About Me</h3>
         <p className="para">
-          Full Stack Developer with 4+ years of experience building scalable web
-          applications using React.js, Angular, Next.js, Node.js, and NestJS. Skilled
-          in microservices architecture, CMS development, and low-code platforms.
-          Passionate about creating high-performance, production-ready solutions
-          from concept to deployment.
+          I am Didar Singh, an MSc Student in Statistics with Data Science at
+          the University of Edinburgh. I specialize in applying machine learning
+          and advanced statistical modeling to extract meaningful insights from
+          complex data. With a solid foundation in computational simulation and
+          analytical reporting, I am driven to design intelligent, data-driven
+          solutions for real-world decision-making challenges.
         </p>
       </div>
     </div>

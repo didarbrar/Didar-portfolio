@@ -3,6 +3,7 @@ import About from "./About";
 import Career from "./Career";
 import Contact from "./Contact";
 import Cursor from "./Cursor";
+import Education from "./Education";
 import Landing from "./Landing";
 import Navbar from "./Navbar";
 import SocialIcons from "./SocialIcons";
@@ -12,15 +13,19 @@ import setSplitText from "./utils/splitText";
 
 const TechStack = lazy(() => import("./TechStack"));
 
+const isDesktopCapableDevice = () =>
+  window.innerWidth > 1024 &&
+  window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+
 const MainContainer = ({ children }: PropsWithChildren) => {
   const [isDesktopView, setIsDesktopView] = useState<boolean>(
-    window.innerWidth > 1024
+    isDesktopCapableDevice()
   );
 
   useEffect(() => {
     const resizeHandler = () => {
       setSplitText();
-      setIsDesktopView(window.innerWidth > 1024);
+      setIsDesktopView(isDesktopCapableDevice());
     };
     resizeHandler();
     window.addEventListener("resize", resizeHandler);
@@ -31,7 +36,7 @@ const MainContainer = ({ children }: PropsWithChildren) => {
 
   return (
     <div className="container-main">
-      <Cursor />
+      {isDesktopView && <Cursor />}
       <Navbar />
       <SocialIcons />
       {isDesktopView && children}
@@ -42,6 +47,7 @@ const MainContainer = ({ children }: PropsWithChildren) => {
             <About />
             <WhatIDo />
             <Career />
+            <Education />
             <Work />
             {isDesktopView && (
               <Suspense fallback={<div>Loading....</div>}>

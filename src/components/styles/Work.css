@@ -38,6 +38,9 @@
   display: flex;
   transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
   will-change: transform;
+  backface-visibility: hidden;
+  perspective: 1000px;
+  transform: translateZ(0);
 }
 
 .carousel-slide {
@@ -45,6 +48,7 @@
   flex-shrink: 0;
   box-sizing: border-box;
   padding: 50px 0;
+  transform: translateZ(0);
 }
 
 .carousel-content {
@@ -131,15 +135,15 @@
   justify-content: center;
   font-size: 22px;
   cursor: pointer;
-  transition: all 0.3s ease;
-  backdrop-filter: blur(8px);
+  transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+  background-color: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.1);
 }
 
 .carousel-arrow:hover {
-  background: rgba(94, 234, 212, 0.15);
+  background-color: rgba(94, 234, 212, 0.15);
   border-color: var(--accentColor);
   color: var(--accentColor);
-  box-shadow: 0 0 20px rgba(94, 234, 212, 0.15);
 }
 
 .carousel-arrow-left {
@@ -165,7 +169,7 @@
   border: 1px solid rgba(255, 255, 255, 0.3);
   background: transparent;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: background-color 0.3s ease, border-color 0.3s ease;
   padding: 0;
 }
 
@@ -177,7 +181,6 @@
 .carousel-dot-active {
   background: var(--accentColor);
   border-color: var(--accentColor);
-  box-shadow: 0 0 8px rgba(94, 234, 212, 0.4);
 }
 
 /* ── Work Image (reused) ── */

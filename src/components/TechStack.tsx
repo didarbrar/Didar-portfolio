@@ -11,24 +11,64 @@ import {
   RapierRigidBody,
 } from "@react-three/rapier";
 
-const textureLoader = new THREE.TextureLoader();
-const imageUrls = [
-  "/images/react2.webp",
-  "/images/next2.webp",
-  "/images/node2.webp",
-  "/images/express.webp",
-  "/images/mongo.webp",
-  "/images/mysql.webp",
-  "/images/typescript.webp",
-  "/images/javascript.webp",
+const techLabels = [
+  "Python",
+  "R",
+  "MATLAB",
+  "Scikit-learn",
+  "Machine Learning",
+  "Statistical Modeling",
+  "Probability",
+  "Numerical Analysis",
+  "Optimization",
+  "Data Analysis",
 ];
-const textures = imageUrls.map((url) => textureLoader.load(url));
+
+// Detect slow device performance
+const isSLowDevice = () => {
+  const nav = navigator as any;
+  if (nav.deviceMemory && nav.deviceMemory < 4) return true;
+  if (nav.hardwareConcurrency && nav.hardwareConcurrency < 4) return true;
+  return false;
+};
 
 const sphereGeometry = new THREE.SphereGeometry(1, 28, 28);
-
-const spheres = [...Array(30)].map(() => ({
+const sphereCount = isSLowDevice() ? 12 : 30;
+const spheres = [...Array(sphereCount)].map(() => ({
   scale: [0.7, 1, 0.8, 1, 1][Math.floor(Math.random() * 5)],
 }));
+
+function createTextTexture(text: string) {
+  const canvas = document.createElement("canvas");
+  canvas.width = 512;
+  canvas.height = 256;
+  const ctx = canvas.getContext("2d");
+
+  if (!ctx) {
+    return null;
+  }
+
+  const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+  gradient.addColorStop(0, "#0b1220");
+  gradient.addColorStop(1, "#123049");
+  ctx.fillStyle = gradient;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  ctx.strokeStyle = "rgba(255,255,255,0.3)";
+  ctx.lineWidth = 4;
+  ctx.strokeRect(10, 10, canvas.width - 20, canvas.height - 20);
+
+  ctx.fillStyle = "#ffffff";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.font = "bold 44px Geist, Arial, sans-serif";
+  ctx.fillText(text, canvas.width / 2, canvas.height / 2);
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.anisotropy = 8;
+  texture.needsUpdate = true;
+  return texture;
+}
 
 type SphereProps = {
   vec?: THREE.Vector3;
@@ -126,67 +166,105 @@ function Pointer({ vec = new THREE.Vector3(), isActive }: PointerProps) {
 
 const TechStack = () => {
   const [isActive, setIsActive] = useState(false);
+  const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const isSlowDevice = isSLowDevice();
 
   useEffect(() => {
+    let activeInterval: NodeJS.Timeout | null = null;
+
     const handleScroll = () => {
+      if (scrollTimeoutRef.current) return;
+
       const scrollY = window.scrollY || document.documentElement.scrollTop;
-      const threshold = document
-        .getElementById("work")!
-        .getBoundingClientRect().top;
-      setIsActive(scrollY > threshold);
+      const workElement = document.getElementById("work");
+      if (!workElement) return;
+      const threshold = workElement.getBoundingClientRect().top;
+      
+      const newActive = scrollY > threshold;
+      if (newActive !== isActive) {
+        setIsActive(newActive);
+      }
+
+      scrollTimeoutRef.current = setTimeout(() => {
+        scrollTimeoutRef.current = null;
+      }, isSlowDevice ? 200 : 100);
     };
+
     document.querySelectorAll(".header a").forEach((elem) => {
       const element = elem as HTMLAnchorElement;
       element.addEventListener("click", () => {
-        const interval = setInterval(() => {
+        if (activeInterval) clearInterval(activeInterval);
+        activeInterval = setInterval(() => {
           handleScroll();
-        }, 10);
-        setTimeout(() => {
-          clearInterval(interval);
+        }, isSlowDevice ? 100 : 50);
+        const timeout = setTimeout(() => {
+          if (activeInterval) clearInterval(activeInterval);
+          activeInterval = null;
         }, 1000);
+        return () => {
+          clearTimeout(timeout);
+          if (activeInterval) clearInterval(activeInterval);
+        };
       });
     });
-    window.addEventListener("scroll", handleScroll);
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
     return () => {
       window.removeEventListener("scroll", handleScroll);
+      if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
+      if (activeInterval) clearInterval(activeInterval);
     };
-  }, []);
+  }, [isActive, isSlowDevice]);
+  
   const materials = useMemo(() => {
-    return textures.map(
-      (texture) =>
-        new THREE.MeshPhysicalMaterial({
-          map: texture,
-          emissive: "#ffffff",
-          emissiveMap: texture,
-          emissiveIntensity: 0.3,
-          metalness: 0.5,
-          roughness: 1,
-          clearcoat: 0.1,
-        })
-    );
-  }, []);
+    return techLabels
+      .map((label) => createTextTexture(label))
+      .filter((texture): texture is THREE.CanvasTexture => texture !== null)
+      .map(
+        (texture) =>
+          new THREE.MeshPhysicalMaterial({
+            map: texture,
+            emissive: "#ffffff",
+            emissiveMap: texture,
+            emissiveIntensity: isSlowDevice ? 0.08 : 0.15,
+            metalness: isSlowDevice ? 0.2 : 0.3,
+            roughness: 0.95,
+            clearcoat: isSlowDevice ? 0 : 0.1,
+          })
+      );
+  }, [isSlowDevice]);
 
   return (
     <div className="techstack">
-      <h2> My Techstack</h2>
+      <h2>My Techstack</h2>
 
       <Canvas
-        shadows
-        gl={{ alpha: true, stencil: false, depth: false, antialias: false }}
+        shadows={!isSlowDevice}
+        gl={{ 
+          alpha: true, 
+          stencil: false, 
+          depth: false, 
+          antialias: false,
+          powerPreference: "high-performance",
+        }}
         camera={{ position: [0, 0, 20], fov: 32.5, near: 1, far: 100 }}
-        onCreated={(state) => (state.gl.toneMappingExposure = 1.5)}
+        onCreated={(state) => {
+          state.gl.toneMappingExposure = 1.5;
+          state.gl.outputColorSpace = "srgb-linear";
+        }}
         className="tech-canvas"
+        dpr={Math.min(window.devicePixelRatio, isSlowDevice ? 1 : 1.5)}
       >
-        <ambientLight intensity={1} />
+        <ambientLight intensity={isSlowDevice ? 0.7 : 1} />
         <spotLight
           position={[20, 20, 25]}
           penumbra={1}
           angle={0.2}
           color="white"
-          castShadow
-          shadow-mapSize={[512, 512]}
+          castShadow={!isSlowDevice}
+          shadow-mapSize={[256, 256]}
         />
-        <directionalLight position={[0, 5, -4]} intensity={2} />
+        <directionalLight position={[0, 5, -4]} intensity={isSlowDevice ? 1.2 : 2} />
         <Physics gravity={[0, 0, 0]}>
           <Pointer isActive={isActive} />
           {spheres.map((props, i) => (
@@ -200,12 +278,14 @@ const TechStack = () => {
         </Physics>
         <Environment
           files="/models/char_enviorment.hdr"
-          environmentIntensity={0.5}
+          environmentIntensity={isSlowDevice ? 0.3 : 0.5}
           environmentRotation={[0, 4, 2]}
         />
-        <EffectComposer enableNormalPass={false}>
-          <N8AO color="#0f002c" aoRadius={2} intensity={1.15} />
-        </EffectComposer>
+        {!isSlowDevice && (
+          <EffectComposer enableNormalPass={false}>
+            <N8AO color="#0f002c" aoRadius={1.5} intensity={0.6} />
+          </EffectComposer>
+        )}
       </Canvas>
     </div>
   );

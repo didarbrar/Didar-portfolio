@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect, memo } from "react";
 import { MdArrowOutward } from "react-icons/md";
 
 interface Props {
@@ -11,13 +11,30 @@ interface Props {
 const WorkImage = (props: Props) => {
   const [isVideo, setIsVideo] = useState(false);
   const [video, setVideo] = useState("");
-  const handleMouseEnter = async () => {
+  const videoLoadingRef = useRef(false);
+  const videoUrlRef = useRef("");
+
+  useEffect(() => {
+    // Pre-fetch video in the background if available
+    if (props.video && !videoLoadingRef.current && !videoUrlRef.current) {
+      videoLoadingRef.current = true;
+      fetch(`src/assets/${props.video}`)
+        .then((response) => response.blob())
+        .then((blob) => {
+          videoUrlRef.current = URL.createObjectURL(blob);
+        })
+        .catch(() => {
+          videoLoadingRef.current = false;
+        });
+    }
+  }, [props.video]);
+
+  const handleMouseEnter = () => {
     if (props.video) {
       setIsVideo(true);
-      const response = await fetch(`src/assets/${props.video}`);
-      const blob = await response.blob();
-      const blobUrl = URL.createObjectURL(blob);
-      setVideo(blobUrl);
+      if (videoUrlRef.current) {
+        setVideo(videoUrlRef.current);
+      }
     }
   };
 
@@ -43,4 +60,4 @@ const WorkImage = (props: Props) => {
   );
 };
 
-export default WorkImage;
+export default memo(WorkImage);
