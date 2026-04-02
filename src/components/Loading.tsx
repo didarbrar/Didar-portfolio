@@ -20,6 +20,15 @@ const Loading = ({ percent }: { percent: number }) => {
   }
 
   useEffect(() => {
+    // Fallback: hide loading after 10 seconds if not already hidden
+    const fallbackTimeout = setTimeout(() => {
+      setIsLoading(false);
+    }, 10000);
+
+    return () => clearTimeout(fallbackTimeout);
+  }, [setIsLoading]);
+
+  useEffect(() => {
     import("./utils/initialFX").then((module) => {
       if (isLoaded) {
         setClicked(true);
@@ -34,7 +43,7 @@ const Loading = ({ percent }: { percent: number }) => {
       console.error("Failed to load initialFX:", error);
       setIsLoading(false);
     });
-  }, [isLoaded]);
+  }, [isLoaded, setIsLoading]);
 
   function handleMouseMove(e: React.MouseEvent<HTMLElement>) {
     const { currentTarget: target } = e;
