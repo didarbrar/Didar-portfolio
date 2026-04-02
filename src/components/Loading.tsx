@@ -30,6 +30,9 @@ const Loading = ({ percent }: { percent: number }) => {
           setIsLoading(false);
         }, 900);
       }
+    }).catch((error) => {
+      console.error("Failed to load initialFX:", error);
+      setIsLoading(false);
     });
   }, [isLoaded]);
 
