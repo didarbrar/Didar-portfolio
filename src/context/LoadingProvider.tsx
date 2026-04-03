@@ -16,7 +16,7 @@ interface LoadingType {
 export const LoadingContext = createContext<LoadingType | null>(null);
 
 export const LoadingProvider = ({ children }: PropsWithChildren) => {
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [loading, setLoading] = useState(0);
 
   const value = {
@@ -25,7 +25,13 @@ export const LoadingProvider = ({ children }: PropsWithChildren) => {
     setLoading,
   };
 
-  useEffect(() => {}, [loading]);
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      setIsLoading(false);
+    }, 12000);
+
+    return () => clearTimeout(timeout);
+  }, []);
 
   return (
     <LoadingContext.Provider value={value as LoadingType}>
