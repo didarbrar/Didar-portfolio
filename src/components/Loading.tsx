@@ -7,7 +7,6 @@ const Marquee = (MarqueeLib as any)?.default || MarqueeLib;
 
 const Loading = ({ percent }: { percent: number }) => {
   const { setIsLoading } = useLoading();
-  console.log("Loading component mounted. Marquee type:", typeof Marquee, Marquee);
   const [loaded, setLoaded] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
   const [clicked, setClicked] = useState(false);
